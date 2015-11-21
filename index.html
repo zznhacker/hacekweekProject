@@ -505,6 +505,10 @@ body {
   float:right;
 }
 
+p {
+     margin-top: 20px; 
+}
+
 .chats .me p {
   text-align:left;
   float: left;
@@ -763,23 +767,69 @@ footer {
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
 
+      function getTotalQuestions(){
+        var questions = JSON.parse(localStorage.getItem("question"));
+        if (!questions) {
+            return 0;
+        }
+        
+        return questions.length;
+      }
+      function response(text) { 
+          var questionNum=text.id.split('-')[1];
+          var questionID='#t3-'+questionNum;
+          console.log(questionID);
+          var question=$(questionID).text();
+          console.log(question);
+          var dataSet=getAnswer();
+          var ques=0;
+          function findAnswer(element, index, array) {
+          if(element.question==question)
+          {
+            ques++;
+            var textArea='#t1-'+element.id;
+            if($(textArea).val()==element.answer)
+            {
+              alert("Congratulations! You are correct.");
+            }
+            else
+            {
+              alert("Oops! Wrong answer!!");
+            }
+            // if($('t1-'+question))
+          }
+        }
+        
+// Note elision, there is no member at 2 so it isn't visited
+        dataSet.forEach(findAnswer);
+        if(ques==0) alert("question not found!");
+
+          // alert(text.id.split('-')[1]);
+      }
+
       function addQuestion(ques,ans){
         var questions = JSON.parse(localStorage.getItem("question"));
         if (!questions) {
             questions = [];
         }
-        questions.push({question:ques, answer:ans});
+        questions.push({question:ques, answer:ans, id:getTotalQuestions()});
         localStorage.setItem("question", JSON.stringify(questions));
       }
 
+    function getAnswer(){
+    return JSON.parse(localStorage.getItem("question"));
+  }
 
-      var t = document.querySelector('[id=message]');
-      t.addEventListener('keydown', function(event) {
-      if (event.keyCode == 13) {
-        $('#chatform').submit();
-        $('#message').val('');
-      }
-      });
+
+      // var t = document.querySelector('[id=message]');
+      // t.addEventListener('keydown', function(event) {
+      // if (event.keyCode == 13) {
+      //   $('#chatform').submit();
+      //   $('#message').val('');
+      // }
+      // });
+
+      
 
       var socket = io();
 
@@ -787,7 +837,7 @@ footer {
         socket.emit('chat message', $('#message').val(),$('#answer').val());
         $('#message').val('');
         $('#answer').val('');
-        $("html, body").animate({ scrollTop: $(document).height()-$(window).height() },3000);
+        // $("html, body").animate({ scrollTop: $(document).height()-$(window).height() },3000);
         return false;
       });
       socket.on('chat message', function(msg,ans){
@@ -796,8 +846,8 @@ footer {
         
         var liMessage=$('<li class="me">'+
         '</div>' +
-        '<p id='+'></p>'   +
-      '</li>'+'<textarea id="'+msg+'" class="dialog" placeholder="Write your answer.."></textarea>'+'<input type="button" id="response" class="response" value="answer it!"/><br />');
+        '<p id="t3-'+(getTotalQuestions()-1)+'"'+'></p>'   +
+      '</li>'+'<textarea id="t1-'+(getTotalQuestions()-1)+'" class="dialog" placeholder="Write your answer.."></textarea>'+'<input type="button" onclick="response(this)" id="t2-'+(getTotalQuestions()-1)+'" class="response" value="answer it!"/>');
       liMessage.find('p').text(msg);
         $('#show').append(liMessage);
       });
